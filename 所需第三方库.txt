@@ -1,0 +1,7 @@
+(最好下载最新版本)
+CGAL >= 5.0
+boost >= 1.6
+eigen3
+gmp库
+libigl
+opencv >= 4.6
