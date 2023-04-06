@@ -91,17 +91,18 @@ bool Parameterization::surfaceParameterizeIterative(std::vector<std::vector<int>
             std::cerr << "  Error: " << SMP::get_error_message(err) << "\n";
             return false;
         }
+        double cur_error = get_error(seam_mesh,uv_map,bhd);
         // no need to update anymore
-        if (best_error <= c_param.get_error())
+        if (best_error <= cur_error)
         {
             break;
         }
         else
         {
-            std::cout << "Last error:" << best_error << " " << "Current error" << c_param.get_error()<<std::endl;
-            best_error = c_param.get_error();
+            std::cout << "Last error:" << best_error << " " << "Current error" << cur_error<<std::endl;
+            best_error = cur_error;
         }
-        Face_NT_map& face_dist_map = c_param.get_dist_map();
+        Face_NT_map face_dist_map = get_dist_map(seam_mesh, uv_map);
         update_cutpaths(seam_mesh, face_dist_map, cutpaths);
     }
 
@@ -130,7 +131,7 @@ bool Parameterization::surfaceParameterizeIterative(std::vector<std::vector<int>
 
     std::ofstream out("result.off");
     SMP::IO::output_uvmap_to_off(seam_mesh, bhd, uv_map, out);
-    realmesh2GI(seam_mesh, bhd, uv_map, "GI_test.bmp", 63);
+    realmesh2GI(seam_mesh, bhd, uv_map, "GI_test.bmp", 125);
 
     // reconstruct mesh from uv map
 

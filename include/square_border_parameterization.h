@@ -19,10 +19,10 @@
 
 namespace SMP = CGAL::Surface_mesh_parameterization;
 typedef SMP::Square_border_arc_length_parameterizer_3<Seam_mesh> Square_Border_parameterizer;
-typedef SMP::Iterative_authalic_parameterizer_3<Seam_mesh,Square_Border_parameterizer> Square_Parameterizer;
+typedef SMP::Mean_value_coordinates_parameterizer_3<Seam_mesh,Square_Border_parameterizer> Square_Parameterizer;
 
 typedef SMP::Circular_border_arc_length_parameterizer_3<Seam_mesh> Circular_Border_parameterizer;
-typedef SMP::Iterative_authalic_parameterizer_3<Seam_mesh, Circular_Border_parameterizer>Circular_Parameterizer;
+typedef SMP::Mean_value_coordinates_parameterizer_3<Seam_mesh, Circular_Border_parameterizer>Circular_Parameterizer;
 
 
 namespace PMP = CGAL::Polygon_mesh_processing;
