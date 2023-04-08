@@ -81,4 +81,10 @@ NT compute_area_distortion(
 	Seam_mesh& tmesh,
 	UV_pmap& uvmap
 );
+
+NT
+compute_stretch(
+	Seam_mesh& tmesh, 
+	Face_NT_map& face_L2_map
+);
 #endif

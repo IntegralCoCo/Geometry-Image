@@ -6,7 +6,7 @@ bool isInsideCutpaths(
 	std::vector<std::vector<SM_vertex_descriptor>>& cutpaths,
 	face_descriptor fd)
 {
-	SM_face_descriptor sm_fd = SM_face_descriptor(fd.id());
+	SM_face_descriptor sm_fd = SM_face_descriptor(fd.idx());
 	//randomly select a vertex in face_maxdist
 	SM_halfedge_descriptor sm_hd = halfedge(sm_fd, sm);
 	// the source point can not be inside the cutpaths
@@ -78,7 +78,7 @@ void update_cutpaths(
 		}
 	}
 
-	SM_face_descriptor sm_fd = SM_face_descriptor(max_distFd.id());
+	SM_face_descriptor sm_fd = SM_face_descriptor(max_distFd.idx());
 	//randomly select a vertex in face_maxdist
 	SM_halfedge_descriptor sm_hd = halfedge(sm_fd,sm);
 	// the source point can not be inside the cutpaths
@@ -131,7 +131,7 @@ void update_cutpaths(
 
 	std::vector<SM_vertex_descriptor> path;
 	SM_vertex_descriptor des_v;
-	int min_distance = INT_MAX;
+	double min_distance = std::numeric_limits<double>::max();
 	for (auto row : cutpaths)
 	{
 		for (SM_vertex_descriptor vd : row)
@@ -157,7 +157,7 @@ void update_cutpaths(
 
 Face_NT_map get_dist_map(Seam_mesh& seam_mesh, UV_pmap& uv_map)
 {
-	static Face_NT_map face_dist_map = get(Face_NT_tag(), seam_mesh);
+	Face_NT_map face_dist_map = get(Face_NT_tag(), seam_mesh);
 	auto ppmap = get(CGAL::vertex_point, seam_mesh);
 	for (face_descriptor f : seam_mesh.faces())
 	{
@@ -309,4 +309,14 @@ double get_error(Seam_mesh&seam_mesh,UV_pmap&uv_map,halfedge_descriptor&bhd)
 
 	double error = compute_area_distortion(cc_faces, area_3D, seam_mesh, uv_map);
 	return error;
+}
+
+NT compute_stretch(Seam_mesh& tmesh, Face_NT_map& face_L2_map) {
+	NT stretch = 0.0;
+	for (face_descriptor fd : tmesh.faces())
+	{
+		NT cur_dist = get(face_L2_map, fd);
+		stretch += cur_dist;
+	}
+	return stretch;
 }

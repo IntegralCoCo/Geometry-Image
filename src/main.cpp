@@ -21,7 +21,7 @@ Eigen::MatrixXd init_uvmap;
 //void writeSelectiontxt(const std::vector<std::vector<int>>& cutpaths);//the file path must be settled down
 int main(int argc, char* argv[]) {
 	bool isgenus_zero = false;
-	std::string mesh_path = "bunny.off";
+	std::string mesh_path = R"(E:\dev\Geometry-Image\model\bunny.off)";
 	if (igl::readOFF(mesh_path, V, F))
 	{
 		std::cout << "loaded mesh" << std::endl;
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
 	//}
 	//writeSelectiontxt(init_cutpaths);
 	std::string outModelPath = "./";
-	fs::path ModelFilePath("bunny.off");
+	fs::path ModelFilePath(mesh_path);
 	fs::path ParamFilePath("result.off");
 	std::string outGIPath = "GI_test.png";
 	bool normal = false;

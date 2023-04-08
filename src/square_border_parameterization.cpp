@@ -56,7 +56,10 @@ bool Parameterization::surfaceParameterizeIterative(std::vector<std::vector<int>
     //        std::cout << first_path[i + 1].id() << std::endl;
     //    };
     //}
-    double best_error = INT_MAX;
+    double last_stretch = std::numeric_limits<double>::max();
+    halfedge_descriptor output_bhd;
+    UV_uhm  output_uv_uhm;
+    UV_pmap output_uv_map;
     while (1)
     {
         //SM_halfedge_descriptor smhd;
@@ -65,8 +68,8 @@ bool Parameterization::surfaceParameterizeIterative(std::vector<std::vector<int>
         {
             if (!seam_mesh.add_seam(last_path[i], last_path[i + 1])) {
                 std::cout << "WARNING: Deprecated add seam! Ignore it(This may cause serious error)" << std::endl;
-                std::cout << last_path[i].id() << std::endl;
-                std::cout << last_path[i+1].id() << std::endl;
+                std::cout << last_path[i].idx() << std::endl;
+                std::cout << last_path[i+1].idx() << std::endl;
             };
         }
         //smhd = seam_mesh.add_seams(last_path.begin(), last_path.end());
@@ -91,47 +94,46 @@ bool Parameterization::surfaceParameterizeIterative(std::vector<std::vector<int>
             std::cerr << "  Error: " << SMP::get_error_message(err) << "\n";
             return false;
         }
-        double cur_error = get_error(seam_mesh,uv_map,bhd);
-        // no need to update anymore
-        if (best_error <= cur_error)
-        {
-            break;
-        }
-        else
-        {
-            std::cout << "Last error:" << best_error << " " << "Current error" << cur_error<<std::endl;
-            best_error = cur_error;
-        }
         Face_NT_map face_dist_map = get_dist_map(seam_mesh, uv_map);
         update_cutpaths(seam_mesh, face_dist_map, cutpaths);
-    }
+        
+        halfedge_descriptor temp_bhd = CGAL::Polygon_mesh_processing::longest_border(seam_mesh).first;
+        // final square border parameterization
+        // The 2D points of the uv parameterization will be written into this map
+        UV_uhm  temp_uv_uhm;
+        UV_pmap temp_uv_map(temp_uv_uhm);
 
-
-
-    halfedge_descriptor bhd = CGAL::Polygon_mesh_processing::longest_border(seam_mesh).first;
-    //final square border parameterization
-    // The 2D points of the uv parameterization will be written into this map
-    UV_uhm  uv_uhm;
-    UV_pmap uv_map(uv_uhm);
-
-    SMP::Error_code err;
-    std::cout << "Square Parameterization started" << std::endl;
-    try {
-        err = SMP::parameterize(seam_mesh,Square_Parameterizer(),bhd, uv_map);
-    }
-    catch (...) {
-        std::cerr << "  SMP::parameterize didn't succeed\n";
-        return false;
-    }
-    std::cout << "Parameterization finished" << std::endl;
-    if (err != SMP::OK) {
-        std::cerr << "  Error: " << SMP::get_error_message(err) << "\n";
-        return false;
+        std::cout << "Square Parameterization started" << std::endl;
+        try {
+            err = Authalic_Parameterizer().parameterize(seam_mesh, temp_bhd, temp_uv_map);
+        }
+        catch (...) {
+            std::cerr << "  SMP::parameterize didn't succeed\n";
+            return false;
+        }
+        std::cout << "Parameterization finished" << std::endl;
+        if (err != SMP::OK) {
+            std::cerr << "  Error: " << SMP::get_error_message(err) << "\n";
+            return false;
+        }
+        Face_NT_map s_face_dist_map = get_dist_map(seam_mesh, temp_uv_map);
+        double cur_stretch = get_error(seam_mesh, temp_uv_map, temp_bhd);
+        //double cur_stretch = compute_stretch(seam_mesh, s_face_dist_map);
+        if (last_stretch < cur_stretch)
+        {
+            output_uv_map = UV_pmap(output_uv_uhm);
+            std::cout << "stretch rises, end the" << std::endl;
+            break;
+        }
+        output_uv_uhm = temp_uv_uhm;
+        output_bhd = temp_bhd;
+    	std::cout << "Last stretch:" << last_stretch << " " << "Current stretch:" << cur_stretch << std::endl;
+    	last_stretch = cur_stretch;
     }
 
     std::ofstream out("result.off");
-    SMP::IO::output_uvmap_to_off(seam_mesh, bhd, uv_map, out);
-    realmesh2GI(seam_mesh, bhd, uv_map, "GI_test.bmp", 125);
+    SMP::IO::output_uvmap_to_off(seam_mesh, output_bhd, output_uv_map, out);
+    realmesh2GI(seam_mesh, output_bhd, output_uv_map, "GI_test.bmp", 257);
 
     // reconstruct mesh from uv map
 
